@@ -44,7 +44,8 @@ const createNew = async () => {
         name: 'New Diagram',
         content: 'graph TD\n    A-->B;',
         synced: false,
-        updatedAt: ''
+        updatedAt: '',
+        history: []
     };
 };
 
@@ -52,15 +53,44 @@ const selectDiagram = (d: any) => {
     currentDiagram.value = d;
 };
 
-const deleteDiagram = async (e: Event, id: string) => {
+const showDeleteConfirm = ref(false);
+const diagramToDelete = ref<any>(null);
+const deleteFromGithubAlso = ref(false);
+const isDeleting = ref(false);
+
+const confirmDelete = (e: Event, diagram: any) => {
     e.stopPropagation();
-    await App.DeleteDiagram(id);
-    if (currentDiagram.value && currentDiagram.value.id === id) {
-        currentDiagram.value = null;
-    }
-    toastMessage.value = 'Diagram deleted';
-    loadDiagrams();
+    diagramToDelete.value = diagram;
+    deleteFromGithubAlso.value = false;
+    showDeleteConfirm.value = true;
 };
+
+const executeDelete = async () => {
+    if (!diagramToDelete.value) return;
+    isDeleting.value = true;
+    try {
+        if (deleteFromGithubAlso.value && diagramToDelete.value.synced && diagramToDelete.value.sha) {
+            if (!config.githubToken || !config.githubRepo) {
+                throw new Error("GitHub not connected or repo not selected");
+            }
+            await App.DeleteFromGitHub(config.githubToken, config.githubRepo, diagramToDelete.value.name, diagramToDelete.value.sha);
+        }
+        await App.DeleteDiagram(diagramToDelete.value.id);
+        
+        if (currentDiagram.value && currentDiagram.value.id === diagramToDelete.value.id) {
+            currentDiagram.value = null;
+        }
+        toastMessage.value = 'Diagram deleted successfully';
+        loadDiagrams();
+    } catch (e) {
+        toastMessage.value = 'Failed to delete: ' + String(e);
+    } finally {
+        isDeleting.value = false;
+        showDeleteConfirm.value = false;
+        diagramToDelete.value = null;
+    }
+};
+
 </script>
 
 <template>
@@ -99,18 +129,51 @@ const deleteDiagram = async (e: Event, id: string) => {
             <div class="truncate flex-1 pr-2">
                 {{ diagram.name || 'Untitled' }}
             </div>
-            <div class="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                <button class="text-[#a1a1aa] hover:text-red-400 p-0.5" @click="deleteDiagram($event, diagram.id)">
-                    <Trash2 :size="13" />
+            <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Cloud v-if="diagram.synced" :size="12" class="text-blue-400" title="Synced to GitHub" />
+                <CloudOff v-else :size="12" class="text-slate-500" title="Not synced" />
+                <button @click="(e) => confirmDelete(e, diagram)" class="p-1 hover:bg-white/10 rounded text-slate-400 hover:text-red-400 transition-colors ml-1" title="Delete">
+                    <Trash2 :size="12" />
                 </button>
-                <Cloud v-if="diagram.synced" :size="13" class="text-[#238636]" title="Synced" />
-                <CloudOff v-else :size="13" class="text-[#a1a1aa]/50" title="Local" />
             </div>
         </div>
         
-        <div v-if="diagrams.length === 0" class="text-center text-[#a1a1aa]/70 text-[11px] mt-6">
-            No diagrams yet
+        <div v-if="diagrams.length === 0" class="text-center py-8 px-4 text-[#a1a1aa] text-[12px] border border-dashed border-white/10 rounded-lg">
+            No diagrams yet.<br>Create one to get started!
         </div>
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    <transition name="modal-fade">
+        <div v-if="showDeleteConfirm" class="fixed top-0 left-0 w-full h-full bg-[#0a0c10]/70 backdrop-blur-sm flex items-center justify-center z-[9999] p-6">
+            <div class="modal-content bg-[#0e0e11]/90 backdrop-blur-3xl border border-white/5 rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden" @click.stop>
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-white mb-2">Delete Diagram</h3>
+                    <p class="text-[13px] text-slate-400 mb-5">
+                        Are you sure you want to delete <b>{{ diagramToDelete?.name || 'Untitled' }}</b>? This action cannot be undone.
+                    </p>
+                    
+                    <label v-if="diagramToDelete?.synced && diagramToDelete?.sha" class="flex items-center gap-2 text-[12px] text-slate-300 mb-6 cursor-pointer bg-white/5 p-3 rounded-lg border border-white/5 hover:bg-white/10 transition-colors">
+                        <input type="checkbox" v-model="deleteFromGithubAlso" class="rounded bg-black/50 border-white/20 text-red-500 focus:ring-red-500/30 w-4 h-4">
+                        Also delete from GitHub repository
+                    </label>
+                    
+                    <div class="flex justify-end gap-2">
+                        <button @click="showDeleteConfirm = false" :disabled="isDeleting" class="px-4 py-2 rounded-lg text-[13px] font-medium text-slate-300 hover:bg-white/10 transition-colors disabled:opacity-50">
+                            Cancel
+                        </button>
+                        <button @click="executeDelete" :disabled="isDeleting" class="px-4 py-2 rounded-lg text-[13px] font-medium bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors flex items-center gap-2 disabled:opacity-50">
+                            <template v-if="isDeleting">
+                                <div class="w-3.5 h-3.5 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin"></div> Deleting...
+                            </template>
+                            <template v-else>
+                                Delete
+                            </template>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </transition>
 </div>
 </template>

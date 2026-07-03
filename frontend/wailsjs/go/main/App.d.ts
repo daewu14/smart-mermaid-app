@@ -4,15 +4,17 @@ import {main} from '../models';
 
 export function DeleteDiagram(arg1:string):Promise<void>;
 
+export function DeleteFromGitHub(arg1:string,arg2:string,arg3:string,arg4:string):Promise<void>;
+
+export function FetchDiagramsFromGitHub(arg1:string,arg2:string):Promise<number>;
+
 export function GetDiagrams():Promise<Array<main.Diagram>>;
 
 export function GetGitHubRepos(arg1:string):Promise<Array<string>>;
 
-export function PollGitHubDeviceFlow(arg1:string,arg2:string):Promise<main.TokenResponse>;
+export function GetGitHubTokenFromCLI():Promise<string>;
 
 export function SaveDiagram(arg1:main.Diagram):Promise<void>;
-
-export function StartGitHubDeviceFlow(arg1:string):Promise<main.DeviceFlowResponse>;
 
 export function StartProxyServer():Promise<void>;
 

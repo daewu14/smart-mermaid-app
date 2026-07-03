@@ -6,6 +6,14 @@ export function DeleteDiagram(arg1) {
   return window['go']['main']['App']['DeleteDiagram'](arg1);
 }
 
+export function DeleteFromGitHub(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['DeleteFromGitHub'](arg1, arg2, arg3, arg4);
+}
+
+export function FetchDiagramsFromGitHub(arg1, arg2) {
+  return window['go']['main']['App']['FetchDiagramsFromGitHub'](arg1, arg2);
+}
+
 export function GetDiagrams() {
   return window['go']['main']['App']['GetDiagrams']();
 }
@@ -14,16 +22,12 @@ export function GetGitHubRepos(arg1) {
   return window['go']['main']['App']['GetGitHubRepos'](arg1);
 }
 
-export function PollGitHubDeviceFlow(arg1, arg2) {
-  return window['go']['main']['App']['PollGitHubDeviceFlow'](arg1, arg2);
+export function GetGitHubTokenFromCLI() {
+  return window['go']['main']['App']['GetGitHubTokenFromCLI']();
 }
 
 export function SaveDiagram(arg1) {
   return window['go']['main']['App']['SaveDiagram'](arg1);
-}
-
-export function StartGitHubDeviceFlow(arg1) {
-  return window['go']['main']['App']['StartGitHubDeviceFlow'](arg1);
 }
 
 export function StartProxyServer() {

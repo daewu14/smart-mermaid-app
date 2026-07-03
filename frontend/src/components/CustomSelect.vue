@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
-import { ChevronDown, Check } from 'lucide-vue-next';
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
+import { ChevronDown, Check, Search } from 'lucide-vue-next';
 
 const props = defineProps({
   modelValue: {
@@ -25,9 +25,22 @@ const emit = defineEmits(['update:modelValue', 'change']);
 
 const isOpen = ref(false);
 const dropdownRef = ref<HTMLElement | null>(null);
+const searchInput = ref<HTMLInputElement | null>(null);
+const searchQuery = ref('');
+
+const filteredOptions = computed(() => {
+  if (!searchQuery.value) return props.options;
+  return props.options.filter(opt => opt.toLowerCase().includes(searchQuery.value.toLowerCase()));
+});
 
 const toggleDropdown = () => {
   isOpen.value = !isOpen.value;
+  if (isOpen.value) {
+    searchQuery.value = '';
+    nextTick(() => {
+      searchInput.value?.focus();
+    });
+  }
 };
 
 const selectOption = (option: string) => {
@@ -69,15 +82,28 @@ onUnmounted(() => {
     <transition name="pop-scale">
       <div 
         v-if="isOpen" 
-        class="absolute left-0 w-full bg-[#18181a]/95 backdrop-blur-3xl border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden py-1"
+        class="absolute left-0 w-full bg-[#18181a]/95 backdrop-blur-3xl border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden py-1 flex flex-col"
         :class="direction === 'up' ? 'bottom-full mb-2' : 'top-full mt-2'"
       >
+        <div v-if="options.length > 3" class="px-2 pb-1 border-b border-white/5 shrink-0 pt-1">
+          <div class="relative flex items-center">
+             <Search :size="12" class="absolute left-3 text-[#a1a1aa]" />
+             <input 
+               ref="searchInput"
+               type="text"
+               v-model="searchQuery"
+               placeholder="Search..."
+               class="w-full bg-black/20 border border-white/5 rounded-lg pl-8 pr-3 py-1.5 text-[12px] text-white focus:outline-none focus:border-white/20 transition-all placeholder:text-[#a1a1aa]/50"
+             >
+          </div>
+        </div>
+
         <div class="max-h-60 overflow-y-auto custom-scrollbar">
-          <div v-if="options.length === 0" class="px-3 py-2 text-[12px] text-[#a1a1aa] text-center">
-            No options available
+          <div v-if="filteredOptions.length === 0" class="px-3 py-2 text-[12px] text-[#a1a1aa] text-center">
+            No options found
           </div>
           <button 
-            v-for="option in options" 
+            v-for="option in filteredOptions" 
             :key="option"
             @click="selectOption(option)"
             class="w-full text-left px-3 py-2 text-[12px] flex items-center justify-between hover:bg-white/10 transition-colors"

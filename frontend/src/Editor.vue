@@ -81,7 +81,28 @@ const generate = async () => {
     if (!prompt.value.trim() || !config.baseUrl || !selectedModel.value || isGenerating.value) return;
 
     isGenerating.value = true;
+    
+    if (!currentDiagram.value.history) {
+        currentDiagram.value.history = [];
+    }
+
+    const currentCode = currentDiagram.value.content;
+    let contextPrompt = prompt.value;
+    
+    if (currentCode && currentCode.trim() !== 'graph TD\n    A-->B;') {
+        contextPrompt = prompt.value + `\n\nCurrent Mermaid Code:\n\`\`\`mermaid\n${currentCode}\n\`\`\``;
+    }
+
+    const apiMessages = [
+        { role: 'system', content: 'You are an expert Mermaid.js generator. Only output valid Mermaid code wrapped in ```mermaid ... ```. Do not include any other explanations, greetings, or text.' },
+        ...currentDiagram.value.history,
+        { role: 'user', content: contextPrompt }
+    ];
+
     currentDiagram.value.content = '';
+    const userOriginalPrompt = prompt.value;
+    prompt.value = '';
+    adjustHeight();
 
     try {
         const res = await fetch(`http://127.0.0.1:45543/proxy`, {
@@ -93,10 +114,7 @@ const generate = async () => {
             },
             body: JSON.stringify({
                 model: selectedModel.value,
-                messages: [
-                    { role: 'system', content: 'You are an expert Mermaid.js generator. Only output valid Mermaid code wrapped in ```mermaid ... ```. Do not include any other explanations, greetings, or text.' },
-                    { role: 'user', content: prompt.value }
-                ],
+                messages: apiMessages,
                 stream: true
             })
         });
@@ -113,6 +131,7 @@ const generate = async () => {
         const reader = res.body?.getReader();
         const decoder = new TextDecoder();
         let fullText = '';
+        let finalMermaidCode = '';
 
         if (reader) {
             while (true) {
@@ -138,14 +157,18 @@ const generate = async () => {
                                 }
                                 
                                 currentDiagram.value.content = content;
+                                finalMermaidCode = content;
                             }
                         } catch (e) {}
                     }
                 }
             }
         }
-        prompt.value = '';
-        adjustHeight();
+        
+        // Push to history after successful generation
+        currentDiagram.value.history.push({ role: 'user', content: userOriginalPrompt });
+        currentDiagram.value.history.push({ role: 'assistant', content: "```mermaid\n" + finalMermaidCode + "\n```" });
+        
     } catch (e: any) {
         console.error(e);
         toastMessage.value = e.message || 'Generation failed.';
@@ -169,16 +192,18 @@ const saveDiagram = async () => {
     toastMessage.value = 'Diagram saved';
 };
 
+const isSyncing = ref(false);
+
 const pushToGithub = async () => {
     if (!config.githubToken || !config.githubRepo) {
         toastMessage.value = 'Please configure GitHub OAuth & Repo in Settings.';
         showSettings.value = true;
         return;
     }
-    if (!currentDiagram.value.id) {
-        await saveDiagram();
-    }
     
+    await saveDiagram();
+    
+    isSyncing.value = true;
     try {
         await App.SyncToGitHub(config.githubToken, config.githubRepo, currentDiagram.value.id);
         const list = await App.GetDiagrams();
@@ -188,6 +213,8 @@ const pushToGithub = async () => {
         toastMessage.value = 'Synced to GitHub';
     } catch (e) {
         toastMessage.value = 'Sync failed: ' + e;
+    } finally {
+        isSyncing.value = false;
     }
 };
 </script>
@@ -230,8 +257,13 @@ const pushToGithub = async () => {
                 <button @click="saveDiagram" class="p-1 rounded text-[#a1a1aa] hover:text-white hover:bg-white/10 transition-colors" title="Save">
                     <Save :size="13" />
                 </button>
-                <button @click="pushToGithub" class="px-1.5 py-0.5 rounded flex items-center gap-1 text-[#238636] hover:bg-[#238636]/10 transition-colors text-[11px] font-medium" title="Sync">
-                    <CloudUpload :size="12" /> Sync
+                <button @click="pushToGithub" :disabled="isSyncing" class="px-1.5 py-0.5 rounded flex items-center gap-1 text-[#238636] hover:bg-[#238636]/10 transition-colors text-[11px] font-medium disabled:opacity-50" title="Sync">
+                    <template v-if="isSyncing">
+                        <div class="w-3 h-3 border-2 border-[#238636]/30 border-t-[#238636] rounded-full animate-spin"></div> Syncing...
+                    </template>
+                    <template v-else>
+                        <CloudUpload :size="12" /> Sync
+                    </template>
                 </button>
             </div>
         </div>

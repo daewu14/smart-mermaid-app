@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { X, Github, Database, CheckCircle2, ChevronRight, Check } from 'lucide-vue-next';
-import { showSettings, config, toastMessage } from './store';
+import { showSettings, config, toastMessage, diagrams } from './store';
 import * as App from '../wailsjs/go/main/App.js';
 import { BrowserOpenURL } from '../wailsjs/runtime/runtime.js';
 import CustomSelect from './components/CustomSelect.vue';
 
 const activeTab = ref('ai');
-// ... other refs ...
 const isConnectingGithub = ref(false);
 const repos = ref<string[]>([]);
 const isFetchingRepos = ref(false);
+const isFetchingDiagrams = ref(false);
 const githubStep = ref(0); // 0: initial, 1: connecting
 const deviceFlowRes = ref<any>(null);
 const pollInterval = ref<any>(null);
@@ -30,6 +30,9 @@ watch(showSettings, (val) => {
             githubToken: config.githubToken,
             githubRepo: config.githubRepo
         };
+        if (localConfig.value.githubToken) {
+            fetchRepos(localConfig.value.githubToken);
+        }
     }
 });
 
@@ -63,6 +66,29 @@ const saveConfig = () => {
     config.githubRepo = localConfig.value.githubRepo;
     localStorage.setItem('smart-mermaid-config', JSON.stringify(config));
     toastMessage.value = 'Settings saved';
+};
+
+const fetchDiagrams = async () => {
+    if (!localConfig.value.githubToken || !localConfig.value.githubRepo) return;
+    
+    isFetchingDiagrams.value = true;
+    try {
+        const count = await App.FetchDiagramsFromGitHub(localConfig.value.githubToken, localConfig.value.githubRepo);
+        const list = await App.GetDiagrams();
+        diagrams.value = list || [];
+        toastMessage.value = `Fetched ${count} diagrams from GitHub`;
+    } catch (e) {
+        toastMessage.value = 'Failed to fetch diagrams: ' + String(e);
+    } finally {
+        isFetchingDiagrams.value = false;
+    }
+};
+
+const handleRepoChange = async (repo: string) => {
+    saveConfig();
+    if (repo) {
+        await fetchDiagrams();
+    }
 };
 
 const handleKeydown = (e: KeyboardEvent) => {
@@ -131,6 +157,26 @@ const startGithubAuth = async () => {
             }, res.interval * 1000);
         } else {
             toastMessage.value = 'Failed to start OAuth flow.';
+        }
+    } catch (e) {
+        toastMessage.value = String(e);
+    } finally {
+        isConnectingGithub.value = false;
+    }
+};
+
+const authWithCLI = async () => {
+    isConnectingGithub.value = true;
+    try {
+        const token = await App.GetGitHubTokenFromCLI();
+        if (token) {
+            localConfig.value.githubToken = token;
+            saveConfig();
+            fetchRepos(token);
+            if (localConfig.value.githubRepo) {
+                fetchDiagrams();
+            }
+            toastMessage.value = 'GitHub connected successfully!';
         }
     } catch (e) {
         toastMessage.value = String(e);
@@ -232,9 +278,10 @@ const disconnectGithub = () => {
                                     :options="repos" 
                                     placeholder="Select a repository..." 
                                     direction="down" 
-                                    @change="saveConfig"
+                                    @change="handleRepoChange"
                                 />
                                 <p v-if="isFetchingRepos" class="text-[11px] text-slate-500 animate-pulse mt-1">Loading repositories...</p>
+                                <p v-if="isFetchingDiagrams" class="text-[11px] text-blue-400 animate-pulse mt-1 flex items-center gap-1.5"><span class="w-3 h-3 border-2 border-blue-400/30 border-t-blue-400 rounded-full animate-spin block"></span> Fetching diagrams from GitHub...</p>
                             </div>
                         </div>
 
@@ -248,26 +295,18 @@ const disconnectGithub = () => {
                                     Connect GitHub to sync your Mermaid diagrams directly to your repositories.
                                 </p>
                                 
-                                <div v-if="githubStep === 0" class="pt-2">
-                                    <button @click="startGithubAuth" :disabled="isConnectingGithub" class="bg-white text-black hover:bg-slate-200 px-5 py-2.5 rounded-lg text-[13px] font-semibold transition-colors flex items-center gap-2 mx-auto disabled:opacity-50">
+                                <div class="mt-6 pt-5 border-t border-[#30363d] space-y-3 text-center">
+                                    <button @click="authWithCLI" :disabled="isConnectingGithub" class="bg-white text-black hover:bg-slate-200 px-5 py-2.5 rounded-lg text-[13px] font-semibold transition-colors flex items-center justify-center gap-2 mx-auto w-full max-w-[250px] disabled:opacity-50">
                                         <template v-if="isConnectingGithub">
                                             <div class="w-3.5 h-3.5 border-2 border-black/30 border-t-black rounded-full animate-spin"></div> Connecting...
                                         </template>
                                         <template v-else>
-                                            <Github :size="16" /> Authenticate with GitHub
+                                            <Github :size="16" /> Connect via GitHub CLI
                                         </template>
                                     </button>
-                                </div>
-
-                                <div v-if="githubStep === 1" class="pt-4 border-t border-[#30363d] text-left space-y-4">
-                                    <p class="text-[13px] text-slate-300">
-                                        Please enter this code in the browser window that just opened:
-                                    </p>
-                                    <div class="text-3xl font-mono tracking-widest text-white text-center font-bold py-4 bg-[#21262d] rounded-lg">
-                                        {{ deviceFlowRes?.user_code }}
-                                    </div>
-                                    <p class="text-[11px] text-slate-500 text-center flex items-center justify-center gap-2">
-                                        <div class="w-3 h-3 border-[1.5px] border-slate-500/30 border-t-slate-500 rounded-full animate-spin"></div> Waiting for approval...
+                                    <p class="text-[11px] text-slate-500 leading-relaxed mt-3">
+                                        This will securely fetch your token from your local GitHub CLI. <br>
+                                        Make sure you have run <code>gh auth login</code> in your terminal.
                                     </p>
                                 </div>
                             </div>
