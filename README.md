@@ -48,5 +48,3 @@ Open the **Settings** menu within the app to configure:
 - **API Key**: Authentication for your AI provider.
 - **GitHub Token**: Personal access token (PAT) for diagram synchronization.
 - **GitHub Repo**: The repository name (e.g., `username/repo`) to store your diagrams.
-
-*Note: All credentials are securely stored in your local machine's storage and are never committed to version control.*
