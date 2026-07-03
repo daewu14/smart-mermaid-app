@@ -218,7 +218,25 @@ func (a *App) SyncToGitHub(token, repo, id string) (string, error) {
 
 // GetGitHubTokenFromCLI fetches the GitHub token using the gh cli
 func (a *App) GetGitHubTokenFromCLI() (string, error) {
-	cmd := exec.Command("gh", "auth", "token")
+	ghPaths := []string{
+		"gh", // If it's already in PATH
+		"/opt/homebrew/bin/gh", // Homebrew on Apple Silicon
+		"/usr/local/bin/gh", // Homebrew on Intel Macs
+	}
+	
+	var ghCmd string
+	for _, p := range ghPaths {
+		if _, err := exec.LookPath(p); err == nil {
+			ghCmd = p
+			break
+		}
+	}
+	
+	if ghCmd == "" {
+		ghCmd = "gh" // fallback
+	}
+
+	cmd := exec.Command(ghCmd, "auth", "token")
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	err := cmd.Run()
