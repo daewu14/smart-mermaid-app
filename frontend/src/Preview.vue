@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, nextTick } from 'vue';
+import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue';
 import mermaid from 'mermaid';
 import { Maximize2, Minimize2, ZoomIn, ZoomOut, Download, Navigation, Expand, Minimize } from 'lucide-vue-next';
 import { currentDiagram, isSidebarOpen, isFullscreen, zoom } from './store';
@@ -56,12 +56,35 @@ const resetView = () => {
     panY.value = 0;
 };
 
+let observer: MutationObserver | null = null;
+
 onMounted(() => {
     mermaid.initialize({ 
         startOnLoad: false, 
-        theme: 'dark',
+        theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
         securityLevel: 'loose'
     });
+    
+    // Watch for class changes on documentElement to detect theme change
+    observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.attributeName === 'class') {
+                mermaid.initialize({
+                    startOnLoad: false,
+                    theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
+                    securityLevel: 'loose'
+                });
+                renderDiagram();
+            }
+        });
+    });
+    observer.observe(document.documentElement, { attributes: true });
+});
+
+onUnmounted(() => {
+    if (observer) {
+        observer.disconnect();
+    }
 });
 
 const renderDiagram = async () => {
@@ -131,7 +154,7 @@ const downloadSvg = () => {
 
 <template>
 <div 
-    class="h-full w-full bg-[#0a0c10] overflow-hidden flex items-center justify-center relative select-none"
+    class="h-full w-full bg-slate-50 dark:bg-[#0a0c10] overflow-hidden flex items-center justify-center relative select-none transition-colors duration-300"
     :class="isDragging ? 'cursor-grabbing' : 'cursor-grab'"
     @mousedown="startPan"
     @mousemove="doPan"

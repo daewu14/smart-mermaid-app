@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch, onUnmounted } from 'vue';
 import { Menu, X, PanelLeft } from 'lucide-vue-next';
 import Sidebar from './Sidebar.vue';
 import Settings from './Settings.vue';
@@ -25,35 +25,62 @@ onMounted(async () => {
         config.apiKey = parsed.apiKey || '';
         config.githubToken = parsed.githubToken || '';
         config.githubRepo = parsed.githubRepo || '';
+        config.appearance = parsed.appearance || 'system';
     }
+    
+    applyAppearance();
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', handleSystemThemeChange);
 });
 
-// Watch for toast changes
-import { watch } from 'vue';
+onUnmounted(() => {
+    window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', handleSystemThemeChange);
+});
+
+const handleSystemThemeChange = () => {
+    if (config.appearance === 'system') {
+        applyAppearance();
+    }
+};
+
+const applyAppearance = () => {
+    const isDark = config.appearance === 'dark' || 
+                   (config.appearance === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    if (isDark) {
+        document.documentElement.classList.add('dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+    }
+};
+
+// Watch for toast changes and appearance changes
 watch(toastMessage, (val) => {
     if (val) setToast(val);
+});
+
+watch(() => config.appearance, () => {
+    applyAppearance();
 });
 </script>
 
 <template>
-  <main class="w-full h-full flex bg-[#0e0e11] text-slate-300 font-sans overflow-hidden select-none">
+  <main class="w-full h-full flex bg-slate-50 dark:bg-[#0e0e11] text-slate-800 dark:text-slate-300 font-sans overflow-hidden select-none transition-colors duration-300">
     
     <!-- Global Sidebar Toggle (Antigravity style) -->
     <div style="--wails-draggable: no-drag" class="absolute top-[8px] left-[76px] z-50">
-        <button @click="isSidebarOpen = !isSidebarOpen" class="p-1 rounded text-[#a1a1aa] hover:text-white hover:bg-white/10 transition-colors flex items-center justify-center" title="Toggle Sidebar">
+        <button @click="isSidebarOpen = !isSidebarOpen" class="p-1 rounded text-slate-500 hover:text-slate-800 hover:bg-black/5 dark:text-[#a1a1aa] dark:hover:text-white dark:hover:bg-white/10 transition-colors flex items-center justify-center" title="Toggle Sidebar">
             <PanelLeft :size="16" stroke-width="2.2" />
         </button>
     </div>
 
     <!-- Sidebar with smooth width transition -->
-    <div :class="isSidebarOpen ? 'w-64 border-r border-white/5' : 'w-0 border-r-0'" class="shrink-0 transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] z-40 relative overflow-hidden bg-[#131314]">
+    <div :class="isSidebarOpen ? 'w-64 border-r border-slate-200 dark:border-white/5' : 'w-0 border-r-0'" class="shrink-0 transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] z-40 relative overflow-hidden bg-white dark:bg-[#131314]">
         <div class="w-64 h-full">
             <Sidebar />
         </div>
     </div>
 
     <!-- Main Content Area -->
-    <div class="flex-1 relative flex flex-col overflow-hidden bg-[#0e0e11]">
+    <div class="flex-1 relative flex flex-col overflow-hidden bg-slate-50 dark:bg-[#0e0e11]">
         
         <!-- Draggable Title Bar Area for entire app -->
         <div style="--wails-draggable: drag" class="absolute top-0 left-0 w-full h-10 z-10" @dblclick="WindowToggleMaximise"></div>
@@ -71,10 +98,10 @@ watch(toastMessage, (val) => {
         </template>
         <template v-else>
             <div class="w-full h-full flex flex-col items-center justify-center text-slate-500 z-10 relative">
-                <div class="w-16 h-16 mb-4 rounded-full bg-[#21262d] flex items-center justify-center border border-[#30363d] shadow-lg">
+                <div class="w-16 h-16 mb-4 rounded-full bg-white dark:bg-[#21262d] flex items-center justify-center border border-slate-200 dark:border-[#30363d] shadow-lg">
                     <span class="text-2xl text-blue-500 font-bold">M</span>
                 </div>
-                <h1 class="text-lg font-semibold text-slate-300 mb-1">Smart Mermaid</h1>
+                <h1 class="text-lg font-semibold text-slate-800 dark:text-slate-300 mb-1">Smart Mermaid</h1>
                 <p class="text-xs text-slate-500">Select or create a diagram to begin</p>
             </div>
         </template>

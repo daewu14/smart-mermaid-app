@@ -224,37 +224,37 @@ const pushToGithub = async () => {
     
     <!-- Code Editor Drawer -->
     <transition name="slide-down">
-        <div v-if="showCode" class="absolute bottom-full mb-2 w-full bg-[#161b22]/95 backdrop-blur-md border border-[#30363d] rounded-xl overflow-hidden shadow-2xl z-20">
-            <div class="bg-[#0d1117] px-3 py-1.5 text-[11px] font-mono text-slate-400 flex justify-between items-center border-b border-[#30363d]">
+        <div v-if="showCode" class="absolute bottom-full mb-2 w-full bg-white/95 dark:bg-[#161b22]/95 backdrop-blur-md border border-slate-200 dark:border-[#30363d] rounded-xl overflow-hidden shadow-2xl z-20">
+            <div class="bg-slate-50 dark:bg-[#0d1117] px-3 py-1.5 text-[11px] font-mono text-slate-500 dark:text-slate-400 flex justify-between items-center border-b border-slate-200 dark:border-[#30363d]">
                 Raw Mermaid Code
-                <button @click="showCode = false" class="hover:text-slate-200"><ChevronDown :size="14"/></button>
+                <button @click="showCode = false" class="hover:text-slate-800 dark:hover:text-slate-200"><ChevronDown :size="14"/></button>
             </div>
-            <textarea v-model="currentDiagram.content" class="w-full h-40 bg-transparent p-3 text-[#c9d1d9] font-mono text-[12px] focus:outline-none resize-y" spellcheck="false"></textarea>
+            <textarea v-model="currentDiagram.content" class="w-full h-40 bg-transparent p-3 text-slate-800 dark:text-[#c9d1d9] font-mono text-[12px] focus:outline-none resize-y" spellcheck="false"></textarea>
         </div>
     </transition>
 
     <!-- Prompt Box -->
-    <div class="w-full bg-[#131314]/70 backdrop-blur-3xl border border-white/5 rounded-2xl shadow-2xl flex flex-col transition-colors focus-within:border-white/20 focus-within:bg-[#18181a]/90 relative z-30">
+    <div class="w-full bg-white/70 dark:bg-[#131314]/70 backdrop-blur-3xl border border-slate-200 dark:border-white/5 rounded-2xl shadow-2xl flex flex-col transition-colors focus-within:border-slate-300 dark:focus-within:border-white/20 focus-within:bg-white/90 dark:focus-within:bg-[#18181a]/90 relative z-30">
         <!-- Top Toolbar -->
-        <div class="flex items-center justify-between px-3 py-1.5 border-b border-white/5 bg-transparent rounded-t-2xl">
-            <input type="text" v-model="title" placeholder="Untitled Diagram" class="bg-transparent border-none text-[#a1a1aa] text-[12px] font-medium focus:outline-none w-1/3 focus:text-white transition-colors">
+        <div class="flex items-center justify-between px-3 py-1.5 border-b border-slate-200 dark:border-white/5 bg-transparent rounded-t-2xl">
+            <input type="text" v-model="title" placeholder="Untitled Diagram" class="bg-transparent border-none text-slate-500 dark:text-[#a1a1aa] text-[12px] font-medium focus:outline-none w-1/3 focus:text-slate-900 dark:focus:text-white transition-colors">
             
             <div class="flex items-center gap-1.5">
-                <button @click="zoomOut" class="p-1 rounded text-[#a1a1aa] hover:text-white hover:bg-white/10 transition-colors" title="Zoom Out">
+                <button @click="zoomOut" class="p-1 rounded text-slate-500 dark:text-[#a1a1aa] hover:text-slate-800 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors" title="Zoom Out">
                     <ZoomOut :size="13" />
                 </button>
-                <span class="text-[11px] font-medium text-white w-9 text-center">{{ Math.round(zoom * 100) }}%</span>
-                <button @click="zoomIn" class="p-1 rounded text-[#a1a1aa] hover:text-white hover:bg-white/10 transition-colors" title="Zoom In">
+                <span class="text-[11px] font-medium text-slate-700 dark:text-white w-9 text-center">{{ Math.round(zoom * 100) }}%</span>
+                <button @click="zoomIn" class="p-1 rounded text-slate-500 dark:text-[#a1a1aa] hover:text-slate-800 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors" title="Zoom In">
                     <ZoomIn :size="13" />
                 </button>
                 
-                <div class="w-px h-3 bg-white/10 mx-1"></div>
+                <div class="w-px h-3 bg-black/10 dark:bg-white/10 mx-1"></div>
 
-                <button @click="showCode = !showCode" class="p-1 rounded text-[#a1a1aa] hover:text-white hover:bg-white/10 transition-colors" title="Code">
+                <button @click="showCode = !showCode" class="p-1 rounded text-slate-500 dark:text-[#a1a1aa] hover:text-slate-800 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors" title="Code">
                     <Code :size="13" />
                 </button>
-                <div class="w-px h-3 bg-white/10 mx-0.5"></div>
-                <button @click="saveDiagram" class="p-1 rounded text-[#a1a1aa] hover:text-white hover:bg-white/10 transition-colors" title="Save">
+                <div class="w-px h-3 bg-black/10 dark:bg-white/10 mx-0.5"></div>
+                <button @click="saveDiagram" class="p-1 rounded text-slate-500 dark:text-[#a1a1aa] hover:text-slate-800 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors" title="Save">
                     <Save :size="13" />
                 </button>
                 <button @click="pushToGithub" :disabled="isSyncing" class="px-1.5 py-0.5 rounded flex items-center gap-1 text-[#238636] hover:bg-[#238636]/10 transition-colors text-[11px] font-medium disabled:opacity-50" title="Sync">
@@ -277,7 +277,7 @@ const pushToGithub = async () => {
                     @keydown="handleKeydown"
                     @input="adjustHeight"
                     placeholder="Describe the diagram..." 
-                    class="bg-transparent border-none px-2 py-1.5 text-[13px] text-[#c9d1d9] placeholder-[#8b949e] focus:outline-none resize-none min-h-[36px] max-h-[150px] custom-scrollbar w-full"
+                    class="bg-transparent border-none px-2 py-1.5 text-[13px] text-slate-800 dark:text-[#c9d1d9] placeholder-slate-400 dark:placeholder-[#8b949e] focus:outline-none resize-none min-h-[36px] max-h-[150px] custom-scrollbar w-full"
                     rows="1"
                 ></textarea>
             </div>
@@ -288,10 +288,10 @@ const pushToGithub = async () => {
                 <button 
                     @click="generate" 
                     :disabled="isGenerating || !selectedModel || !prompt.trim()" 
-                    class="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:text-[#484f58] disabled:cursor-not-allowed text-white transition-all flex items-center justify-center shrink-0 w-9 h-9"
+                    class="p-2.5 rounded-xl bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 disabled:bg-black/5 dark:disabled:bg-white/5 disabled:text-slate-400 dark:disabled:text-[#484f58] disabled:cursor-not-allowed text-slate-700 dark:text-white transition-all flex items-center justify-center shrink-0 w-9 h-9"
                 >
                     <template v-if="isGenerating">
-                        <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        <div class="w-4 h-4 border-2 border-slate-300 dark:border-white/30 border-t-slate-600 dark:border-t-white rounded-full animate-spin"></div>
                     </template>
                     <template v-else>
                         <Send :size="15" class="pr-0.5 pb-0.5" />

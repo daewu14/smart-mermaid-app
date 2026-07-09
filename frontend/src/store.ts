@@ -4,7 +4,8 @@ export const config = reactive({
     baseUrl: '',
     apiKey: '',
     githubToken: '',
-    githubRepo: ''
+    githubRepo: '',
+    appearance: 'system' // 'light', 'dark', or 'system'
 });
 
 export const diagrams = ref<any[]>([]);

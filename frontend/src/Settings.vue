@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted } from 'vue';
-import { X, Github, Database, CheckCircle2, ChevronRight, Check } from 'lucide-vue-next';
+import { X, Github, Database, CheckCircle2, ChevronRight, Check, Settings } from 'lucide-vue-next';
 import { showSettings, config, toastMessage, diagrams } from './store';
 import * as App from '../wailsjs/go/main/App.js';
 import { BrowserOpenURL } from '../wailsjs/runtime/runtime.js';
 import CustomSelect from './components/CustomSelect.vue';
 
-const activeTab = ref('ai');
+const activeTab = ref('general');
 const isConnectingGithub = ref(false);
 const repos = ref<string[]>([]);
 const isFetchingRepos = ref(false);
@@ -19,7 +19,8 @@ const localConfig = ref({
     baseUrl: config.baseUrl,
     apiKey: config.apiKey,
     githubToken: config.githubToken,
-    githubRepo: config.githubRepo
+    githubRepo: config.githubRepo,
+    appearance: config.appearance
 });
 
 watch(showSettings, (val) => {
@@ -28,7 +29,8 @@ watch(showSettings, (val) => {
             baseUrl: config.baseUrl,
             apiKey: config.apiKey,
             githubToken: config.githubToken,
-            githubRepo: config.githubRepo
+            githubRepo: config.githubRepo,
+            appearance: config.appearance
         };
         if (localConfig.value.githubToken) {
             fetchRepos(localConfig.value.githubToken);
@@ -64,6 +66,7 @@ const saveConfig = () => {
     config.apiKey = localConfig.value.apiKey;
     config.githubToken = localConfig.value.githubToken;
     config.githubRepo = localConfig.value.githubRepo;
+    config.appearance = localConfig.value.appearance;
     localStorage.setItem('smart-mermaid-config', JSON.stringify(config));
     toastMessage.value = 'Settings saved';
 };
@@ -196,50 +199,85 @@ const disconnectGithub = () => {
 
 <template>
 <transition name="modal-fade">
-    <div v-if="showSettings" class="fixed top-0 left-0 w-full h-full bg-[#0a0c10]/70 backdrop-blur-sm flex items-center justify-center z-[9999] p-6">
+    <div v-if="showSettings" class="fixed top-0 left-0 w-full h-full bg-slate-900/20 dark:bg-[#0a0c10]/70 backdrop-blur-sm flex items-center justify-center z-[9999] p-6">
         
         <!-- Modal Container -->
-        <div class="modal-content bg-[#0e0e11]/90 backdrop-blur-3xl border border-white/5 rounded-2xl w-full max-w-3xl h-[600px] shadow-2xl flex overflow-hidden">
+        <div class="modal-content bg-white/90 dark:bg-[#0e0e11]/90 backdrop-blur-3xl border border-slate-200 dark:border-white/5 rounded-2xl w-full max-w-3xl h-[600px] shadow-2xl flex overflow-hidden">
             
             <!-- Sidebar -->
-            <div class="w-48 bg-[#131314]/80 border-r border-white/5 p-3 flex flex-col gap-1 shrink-0">
-                <h2 class="text-[#8b949e] text-[11px] font-semibold uppercase tracking-wider mb-2 px-2">Settings</h2>
+            <div class="w-48 bg-slate-100/80 dark:bg-[#131314]/80 border-r border-slate-200 dark:border-white/5 p-3 flex flex-col gap-1 shrink-0">
+                <h2 class="text-slate-400 dark:text-[#8b949e] text-[11px] font-semibold uppercase tracking-wider mb-2 px-2">Settings</h2>
                 
-                <button @click="activeTab = 'ai'" class="w-full text-left px-3 py-2 rounded-lg text-[13px] font-medium flex items-center gap-2 transition-colors" :class="activeTab === 'ai' ? 'bg-[#1f6feb]/15 text-blue-400' : 'text-[#a1a1aa] hover:bg-white/10'">
+                <button @click="activeTab = 'general'" class="w-full text-left px-3 py-2 rounded-lg text-[13px] font-medium flex items-center gap-2 transition-colors" :class="activeTab === 'general' ? 'bg-blue-50 dark:bg-[#1f6feb]/15 text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-[#a1a1aa] hover:bg-black/5 dark:hover:bg-white/10'">
+                    <Settings :size="16" /> General
+                </button>
+                
+                <button @click="activeTab = 'ai'" class="w-full text-left px-3 py-2 rounded-lg text-[13px] font-medium flex items-center gap-2 transition-colors" :class="activeTab === 'ai' ? 'bg-blue-50 dark:bg-[#1f6feb]/15 text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-[#a1a1aa] hover:bg-black/5 dark:hover:bg-white/10'">
                     <Database :size="16" /> AI Configuration
                 </button>
                 
-                <button @click="activeTab = 'github'" class="w-full text-left px-3 py-2 rounded-lg text-[13px] font-medium flex items-center gap-2 transition-colors" :class="activeTab === 'github' ? 'bg-[#1f6feb]/15 text-blue-400' : 'text-[#a1a1aa] hover:bg-white/10'">
+                <button @click="activeTab = 'github'" class="w-full text-left px-3 py-2 rounded-lg text-[13px] font-medium flex items-center gap-2 transition-colors" :class="activeTab === 'github' ? 'bg-blue-50 dark:bg-[#1f6feb]/15 text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-[#a1a1aa] hover:bg-black/5 dark:hover:bg-white/10'">
                     <Github :size="16" /> GitHub Sync
                 </button>
             </div>
 
             <!-- Content -->
             <div class="flex-1 flex flex-col relative bg-transparent">
-                <button @click="showSettings = false" class="absolute top-4 right-4 text-[#a1a1aa] hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors z-10">
+                <button @click="showSettings = false" class="absolute top-4 right-4 text-slate-500 dark:text-[#a1a1aa] hover:text-slate-800 dark:hover:text-white p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition-colors z-10">
                     <X :size="18" />
                 </button>
 
                 <div class="p-8 flex-1 overflow-y-auto">
+                    <div v-if="activeTab === 'general'" class="max-w-md">
+                        <h1 class="text-xl font-semibold text-slate-900 dark:text-white mb-6">General Settings</h1>
+                        
+                        <div class="space-y-6">
+                            <div class="space-y-2">
+                                <label class="block text-[13px] font-medium text-slate-700 dark:text-slate-300">Appearance</label>
+                                <div class="flex gap-2">
+                                    <label class="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl border cursor-pointer transition-colors" :class="localConfig.appearance === 'light' ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/30 text-blue-600 dark:text-blue-400' : 'bg-white dark:bg-[#0d1117] border-slate-200 dark:border-[#30363d] text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5'">
+                                        <input type="radio" v-model="localConfig.appearance" value="light" class="hidden">
+                                        <span class="text-[13px] font-medium">Light</span>
+                                    </label>
+                                    <label class="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl border cursor-pointer transition-colors" :class="localConfig.appearance === 'dark' ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/30 text-blue-600 dark:text-blue-400' : 'bg-white dark:bg-[#0d1117] border-slate-200 dark:border-[#30363d] text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5'">
+                                        <input type="radio" v-model="localConfig.appearance" value="dark" class="hidden">
+                                        <span class="text-[13px] font-medium">Dark</span>
+                                    </label>
+                                    <label class="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl border cursor-pointer transition-colors" :class="localConfig.appearance === 'system' ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/30 text-blue-600 dark:text-blue-400' : 'bg-white dark:bg-[#0d1117] border-slate-200 dark:border-[#30363d] text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5'">
+                                        <input type="radio" v-model="localConfig.appearance" value="system" class="hidden">
+                                        <span class="text-[13px] font-medium">System</span>
+                                    </label>
+                                </div>
+                                <p class="text-[11px] text-slate-500">Choose your preferred theme. System will automatically switch based on your OS settings.</p>
+                            </div>
+                            
+                            <div class="pt-4 border-t border-slate-200 dark:border-[#30363d] flex justify-end">
+                                <button @click="saveConfig" class="bg-[#238636] hover:bg-[#2ea043] text-white px-4 py-2 rounded-lg text-[13px] font-medium transition-colors">
+                                    Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div v-if="activeTab === 'ai'" class="max-w-md">
-                        <h1 class="text-xl font-semibold text-white mb-6">AI Configuration</h1>
+                        <h1 class="text-xl font-semibold text-slate-900 dark:text-white mb-6">AI Configuration</h1>
                         
                         <div class="space-y-4">
                             <div class="space-y-1.5">
-                                <label class="block text-[13px] font-medium text-slate-300">Base URL</label>
-                                <input type="text" v-model="localConfig.baseUrl" placeholder="http://127.0.0.1:11434/v1" class="w-full bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-2 text-[13px] text-slate-200 focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff] transition-all">
+                                <label class="block text-[13px] font-medium text-slate-700 dark:text-slate-300">Base URL</label>
+                                <input type="text" v-model="localConfig.baseUrl" placeholder="http://127.0.0.1:11434/v1" class="w-full bg-white dark:bg-[#0d1117] border border-slate-200 dark:border-[#30363d] rounded-lg px-3 py-2 text-[13px] text-slate-800 dark:text-slate-200 focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff] transition-all">
                                 <p class="text-[11px] text-slate-500">The OpenAI-compatible API endpoint (e.g. Ollama, LMStudio, Custom).</p>
                             </div>
 
                             <div class="space-y-1.5">
-                                <label class="block text-[13px] font-medium text-slate-300">API Key (Optional)</label>
-                                <input type="password" v-model="localConfig.apiKey" placeholder="sk-..." class="w-full bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-2 text-[13px] text-slate-200 focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff] transition-all">
+                                <label class="block text-[13px] font-medium text-slate-700 dark:text-slate-300">API Key (Optional)</label>
+                                <input type="password" v-model="localConfig.apiKey" placeholder="sk-..." class="w-full bg-white dark:bg-[#0d1117] border border-slate-200 dark:border-[#30363d] rounded-lg px-3 py-2 text-[13px] text-slate-800 dark:text-slate-200 focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff] transition-all">
                             </div>
 
-                            <div class="pt-4 border-t border-[#30363d] flex items-center gap-2">
-                                <button @click="testConnection" :disabled="isTestingAI" class="bg-[#21262d] hover:bg-[#30363d] text-slate-300 px-4 py-2 rounded-lg text-[13px] font-medium transition-colors border border-[#30363d] disabled:opacity-50 flex items-center gap-2">
+                            <div class="pt-4 border-t border-slate-200 dark:border-[#30363d] flex items-center gap-2">
+                                <button @click="testConnection" :disabled="isTestingAI" class="bg-slate-100 dark:bg-[#21262d] hover:bg-slate-200 dark:hover:bg-[#30363d] text-slate-700 dark:text-slate-300 px-4 py-2 rounded-lg text-[13px] font-medium transition-colors border border-slate-200 dark:border-[#30363d] disabled:opacity-50 flex items-center gap-2">
                                     <template v-if="isTestingAI">
-                                        <div class="w-3.5 h-3.5 border-2 border-slate-400/30 border-t-slate-400 rounded-full animate-spin"></div> Testing...
+                                        <div class="w-3.5 h-3.5 border-2 border-slate-400/30 dark:border-slate-400/30 border-t-slate-500 dark:border-t-slate-400 rounded-full animate-spin"></div> Testing...
                                     </template>
                                     <template v-else>
                                         Test Connection
@@ -253,16 +291,16 @@ const disconnectGithub = () => {
                     </div>
 
                     <div v-if="activeTab === 'github'" class="max-w-md">
-                        <h1 class="text-xl font-semibold text-white mb-6">GitHub Sync</h1>
+                        <h1 class="text-xl font-semibold text-slate-900 dark:text-white mb-6">GitHub Sync</h1>
 
                         <div v-if="localConfig.githubToken" class="space-y-6">
-                            <div class="bg-[#0d1117] border border-[#238636]/30 rounded-xl p-4 flex items-center justify-between">
+                            <div class="bg-white dark:bg-[#0d1117] border border-green-500/20 dark:border-[#238636]/30 rounded-xl p-4 flex items-center justify-between">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-full bg-[#238636]/10 flex items-center justify-center text-[#238636]">
+                                    <div class="w-10 h-10 rounded-full bg-green-500/10 dark:bg-[#238636]/10 flex items-center justify-center text-green-600 dark:text-[#238636]">
                                         <CheckCircle2 :size="20" />
                                     </div>
                                     <div>
-                                        <div class="text-[14px] font-medium text-slate-200">Connected to GitHub</div>
+                                        <div class="text-[14px] font-medium text-slate-800 dark:text-slate-200">Connected to GitHub</div>
                                         <div class="text-[12px] text-slate-500">You can now sync diagrams to your repos.</div>
                                     </div>
                                 </div>
@@ -272,7 +310,7 @@ const disconnectGithub = () => {
                             </div>
 
                             <div class="space-y-1.5 relative z-20">
-                                <label class="block text-[13px] font-medium text-slate-300">Target Repository</label>
+                                <label class="block text-[13px] font-medium text-slate-700 dark:text-slate-300">Target Repository</label>
                                 <CustomSelect 
                                     v-model="localConfig.githubRepo" 
                                     :options="repos" 
@@ -286,19 +324,19 @@ const disconnectGithub = () => {
                         </div>
 
                         <div v-else class="space-y-6">
-                            <div class="bg-[#0d1117] border border-[#30363d] rounded-xl p-6 text-center space-y-4">
-                                <div class="w-12 h-12 rounded-full bg-[#21262d] flex items-center justify-center mx-auto text-slate-300 mb-2">
+                            <div class="bg-white dark:bg-[#0d1117] border border-slate-200 dark:border-[#30363d] rounded-xl p-6 text-center space-y-4">
+                                <div class="w-12 h-12 rounded-full bg-slate-100 dark:bg-[#21262d] flex items-center justify-center mx-auto text-slate-700 dark:text-slate-300 mb-2">
                                     <Github :size="24" />
                                 </div>
-                                <h3 class="text-[15px] font-medium text-slate-200">Connect your GitHub Account</h3>
+                                <h3 class="text-[15px] font-medium text-slate-800 dark:text-slate-200">Connect your GitHub Account</h3>
                                 <p class="text-[13px] text-slate-500 max-w-sm mx-auto leading-relaxed">
                                     Connect GitHub to sync your Mermaid diagrams directly to your repositories.
                                 </p>
                                 
-                                <div class="mt-6 pt-5 border-t border-[#30363d] space-y-3 text-center">
-                                    <button @click="authWithCLI" :disabled="isConnectingGithub" class="bg-white text-black hover:bg-slate-200 px-5 py-2.5 rounded-lg text-[13px] font-semibold transition-colors flex items-center justify-center gap-2 mx-auto w-full max-w-[250px] disabled:opacity-50">
+                                <div class="mt-6 pt-5 border-t border-slate-200 dark:border-[#30363d] space-y-3 text-center">
+                                    <button @click="authWithCLI" :disabled="isConnectingGithub" class="bg-slate-800 dark:bg-white text-white dark:text-black hover:bg-slate-700 dark:hover:bg-slate-200 px-5 py-2.5 rounded-lg text-[13px] font-semibold transition-colors flex items-center justify-center gap-2 mx-auto w-full max-w-[250px] disabled:opacity-50">
                                         <template v-if="isConnectingGithub">
-                                            <div class="w-3.5 h-3.5 border-2 border-black/30 border-t-black rounded-full animate-spin"></div> Connecting...
+                                            <div class="w-3.5 h-3.5 border-2 border-slate-400/30 dark:border-black/30 border-t-white dark:border-t-black rounded-full animate-spin"></div> Connecting...
                                         </template>
                                         <template v-else>
                                             <Github :size="16" /> Connect via GitHub CLI
