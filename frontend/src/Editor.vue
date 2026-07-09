@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, nextTick } from 'vue';
 import { Send, Save, CloudUpload, Code, ChevronDown, ZoomIn, ZoomOut } from 'lucide-vue-next';
-import { config, currentDiagram, diagrams, toastMessage, showSettings, zoom, zoomIn, zoomOut } from './store';
+import { config, currentDiagram, diagrams, toastMessage, showSettings, zoom, zoomIn, zoomOut, isGenerating } from './store';
 import * as App from '../wailsjs/go/main/App.js';
 
 import CustomSelect from './components/CustomSelect.vue';
 
 const prompt = ref('');
-const isGenerating = ref(false);
 const models = ref<string[]>([]);
 const selectedModel = ref('');
 const title = ref('');

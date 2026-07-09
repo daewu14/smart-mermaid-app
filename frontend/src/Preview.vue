@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue';
 import mermaid from 'mermaid';
-import { Maximize2, Minimize2, ZoomIn, ZoomOut, Download, Navigation, Expand, Minimize } from 'lucide-vue-next';
-import { currentDiagram, isSidebarOpen, isFullscreen, zoom } from './store';
+import { Maximize2, Minimize2, ZoomIn, ZoomOut, Download, Navigation, Expand, Minimize, Bot } from 'lucide-vue-next';
+import { currentDiagram, isSidebarOpen, isFullscreen, zoom, isGenerating } from './store';
 import { WindowFullscreen, WindowUnfullscreen } from '../wailsjs/runtime/runtime.js';
 
 const toggleFullscreen = () => {
@@ -128,7 +128,8 @@ const renderDiagram = async () => {
     }
 };
 
-watch(() => currentDiagram.value?.content, () => {
+watch(() => [currentDiagram.value?.content, isGenerating.value], () => {
+    if (isGenerating.value) return; // Skip parsing/rendering incomplete syntax during stream
     nextTick(() => {
         renderDiagram();
     });
@@ -163,17 +164,51 @@ const downloadSvg = () => {
     @wheel.prevent="handleWheel"
 >
     
-    <!-- Pan Container (Instant) -->
-    <div class="flex items-center justify-center origin-center" :style="`transform: translate(${panX}px, ${panY}px)`">
-        <!-- Zoom Container (Instant for trackpad) -->
-        <div 
-            ref="container" 
-            class="origin-center flex items-center justify-center mermaid-container" 
-            :style="`transform: scale(${zoom})`"
-        >
-            <div class="text-slate-500 animate-pulse text-[12px]">Rendering...</div>
+    <!-- AI Loading State -->
+    <transition name="render-fade">
+        <div v-if="isGenerating" class="flex flex-col items-center justify-center text-center z-10 absolute inset-0 bg-slate-50/50 dark:bg-[#0a0c10]/50 backdrop-blur-sm">
+            <div class="relative w-20 h-20 flex items-center justify-center mb-6">
+                <!-- Pulsing background circles -->
+                <div class="absolute inset-0 bg-blue-500/10 rounded-full animate-ping" style="animation-duration: 2s;"></div>
+                <div class="absolute inset-2 bg-blue-500/20 rounded-full animate-ping" style="animation-duration: 2s; animation-delay: 0.5s;"></div>
+                
+                <!-- Main spinner -->
+                <div class="absolute inset-0 border-4 border-blue-500/20 rounded-full"></div>
+                <div class="absolute inset-0 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                
+                <!-- Inner AI Core -->
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-full shadow-lg shadow-blue-500/50 flex items-center justify-center text-white">
+                     <Bot :size="20" class="animate-pulse" />
+                </div>
+            </div>
+            
+            <h2 class="text-slate-800 dark:text-slate-200 text-lg font-semibold tracking-wide flex items-center gap-2">
+                AI is thinking
+                <span class="flex gap-1">
+                    <span class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0ms"></span>
+                    <span class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 150ms"></span>
+                    <span class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 300ms"></span>
+                </span>
+            </h2>
+            <p class="text-slate-500 dark:text-slate-400 text-xs mt-2 font-medium">Drafting your Mermaid diagram...</p>
         </div>
-    </div>
+    </transition>
+
+    <!-- Pan Container (Instant) -->
+    <transition name="render-fade">
+        <div v-show="!isGenerating" class="absolute inset-0 flex items-center justify-center">
+            <div class="flex items-center justify-center origin-center w-full h-full" :style="`transform: translate(${panX}px, ${panY}px)`">
+                <!-- Zoom Container (Instant for trackpad) -->
+                <div 
+                    ref="container" 
+                    class="origin-center flex items-center justify-center mermaid-container" 
+                    :style="`transform: scale(${zoom})`"
+                >
+                    <div class="text-slate-500 animate-pulse text-[12px]">Rendering...</div>
+                </div>
+            </div>
+        </div>
+    </transition>
 </div>
 </template>
 
@@ -182,5 +217,15 @@ const downloadSvg = () => {
 :deep(svg) {
     max-width: none !important;
     height: auto !important;
+}
+
+.render-fade-enter-active,
+.render-fade-leave-active {
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.render-fade-enter-from,
+.render-fade-leave-to {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
 }
 </style>

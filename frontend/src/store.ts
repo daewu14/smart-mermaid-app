@@ -15,6 +15,7 @@ export const showSettings = ref(false);
 export const isSidebarOpen = ref(true);
 export const isFullscreen = ref(false);
 export const toastMessage = ref('');
+export const isGenerating = ref(false);
 
 export const zoom = ref(1);
 export const zoomIn = () => {
