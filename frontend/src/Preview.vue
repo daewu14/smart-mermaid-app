@@ -196,7 +196,7 @@ const downloadSvg = () => {
 
     <!-- Pan Container (Instant) -->
     <transition name="render-fade">
-        <div v-show="!isGenerating" class="absolute inset-0 flex items-center justify-center">
+        <div v-if="!isGenerating" :key="currentDiagram?.id || 'empty'" class="absolute inset-0 flex items-center justify-center">
             <div class="flex items-center justify-center origin-center w-full h-full" :style="`transform: translate(${panX}px, ${panY}px)`">
                 <!-- Zoom Container (Instant for trackpad) -->
                 <div 
