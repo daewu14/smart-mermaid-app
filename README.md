@@ -10,7 +10,9 @@
 
 ## ✨ Features
 
-- **🎨 Beautiful Antigravity UI**: Experience a premium, glassmorphic dark-mode interface with a seamless, frameless window design that feels 100% native on macOS.
+- **🎨 Beautiful Antigravity UI**: Experience a premium, glassmorphic interface with a seamless, frameless window design that feels 100% native on macOS.
+- **🌗 Light & Dark Mode**: Fully responsive Appearance settings that adapt to your OS preferences (System mode) or let you manually toggle between Light and Dark aesthetics.
+- **✨ Fluid Animations**: Enjoy buttery-smooth crossfade transitions between diagrams and a stunning AI loading screen while your diagrams are being drafted.
 - **🤖 AI Diagram Generation**: Describe what you want in natural language, and let AI generate perfectly formatted Mermaid diagrams for you instantly.
 - **🔄 GitHub Synchronization**: Connect your GitHub account to automatically backup, sync, and version control your Mermaid diagrams.
 - **🎛️ Custom Models**: Switch seamlessly between different AI models provided by your configured endpoint.
@@ -44,7 +46,6 @@ wails build
 ## ⚙️ Configuration
 
 Open the **Settings** menu within the app to configure:
-- **Base URL**: Your AI API endpoint.
-- **API Key**: Authentication for your AI provider.
-- **GitHub Token**: Personal access token (PAT) for diagram synchronization.
-- **GitHub Repo**: The repository name (e.g., `username/repo`) to store your diagrams.
+- **General**: Toggle Appearance between `Light`, `Dark`, or `System`.
+- **AI Configuration**: Set your AI API endpoint (`Base URL`) and `API Key`.
+- **GitHub Sync**: Seamlessly authenticate via GitHub CLI (`gh auth login`) to select your target repository and automatically sync your diagrams.
