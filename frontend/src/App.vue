@@ -98,9 +98,7 @@ watch(() => config.appearance, () => {
         </template>
         <template v-else>
             <div class="w-full h-full flex flex-col items-center justify-center text-slate-500 z-10 relative">
-                <div class="w-16 h-16 mb-4 rounded-full bg-white dark:bg-[#21262d] flex items-center justify-center border border-slate-200 dark:border-[#30363d] shadow-lg">
-                    <span class="text-2xl text-blue-500 font-bold">M</span>
-                </div>
+                <img src="./assets/logo.png" class="w-20 h-20 mb-4 drop-shadow-xl hover:scale-105 transition-transform" alt="Smart Mermaid Logo" />
                 <h1 class="text-lg font-semibold text-slate-800 dark:text-slate-300 mb-1">Smart Mermaid</h1>
                 <p class="text-xs text-slate-500">Select or create a diagram to begin</p>
             </div>
