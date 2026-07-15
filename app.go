@@ -72,6 +72,9 @@ func (a *App) StartProxyServer() {
 		defer resp.Body.Close()
 
 		w.Header().Set("Content-Type", resp.Header.Get("Content-Type"))
+		if ce := resp.Header.Get("Content-Encoding"); ce != "" {
+			w.Header().Set("Content-Encoding", ce)
+		}
 		w.Header().Set("Cache-Control", "no-cache")
 		
 		// Copy response chunk by chunk for streaming
