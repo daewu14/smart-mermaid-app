@@ -286,7 +286,7 @@ func (a *App) GetGitHubRepos(token string) ([]string, error) {
 
 // TestAIConnection tests the connection to the given AI base URL
 func (a *App) TestAIConnection(baseUrl, apiKey string) (string, error) {
-	req, err := http.NewRequest("GET", baseUrl+"/models", nil)
+	req, err := http.NewRequest("GET", strings.TrimRight(baseUrl, "/")+"/models", nil)
 	if err != nil {
 		return "", err
 	}

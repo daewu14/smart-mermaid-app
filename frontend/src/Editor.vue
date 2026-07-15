@@ -28,7 +28,7 @@ const fetchModels = async () => {
     try {
         const res = await fetch(`http://127.0.0.1:45543/proxy`, {
             headers: {
-                'X-Target-Url': `${config.baseUrl}/models`,
+                'X-Target-Url': `${config.baseUrl.replace(/\\/+$/, '')}/models`,
                 ...(config.apiKey ? { 'Authorization': `Bearer ${config.apiKey}` } : {})
             }
         });
@@ -112,7 +112,7 @@ const generate = async () => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-Target-Url': `${config.baseUrl}/chat/completions`,
+                'X-Target-Url': `${config.baseUrl.replace(/\\/+$/, '')}/chat/completions`,
                 ...(config.apiKey ? { 'Authorization': `Bearer ${config.apiKey}` } : {})
             },
             body: JSON.stringify({
