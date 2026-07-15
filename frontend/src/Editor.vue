@@ -60,6 +60,10 @@ onMounted(() => {
     fetchModels();
 });
 
+watch(() => [config.baseUrl, config.apiKey], () => {
+    fetchModels();
+});
+
 const adjustHeight = () => {
     nextTick(() => {
         if (textareaEl.value) {
